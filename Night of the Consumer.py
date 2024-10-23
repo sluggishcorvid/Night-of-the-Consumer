@@ -56,15 +56,15 @@ class Monster:
         key = pygame.key.get_pressed()
 
         # Moves the character based on user input
-        if key[pygame.K_SPACE] and self.jumped == False:
+        if (key[pygame.K_SPACE] or key[pygame.K_UP]) and self.jumped == False:
             self.vel_y = -15
             self.jumped = True
-        if not key[pygame.K_SPACE]:
+        if not (key[pygame.K_SPACE] or key[pygame.K_UP]):
             self.jumped = False
-        if key[pygame.K_LEFT] and self.rect.left > 0:
+        if (key[pygame.K_LEFT] or key[pygame.K_a]) and self.rect.left > 0:
             self.direction = 0  # Updates the direction of the sprite
             dx -= 5
-        if key[pygame.K_RIGHT] and self.rect.right < 800:
+        if (key[pygame.K_RIGHT] or key[pygame.K_d])and self.rect.right < 800:
             self.direction = 1  # Updates the direction of the sprite
             dx += 5
 
