@@ -101,7 +101,7 @@ class Monster:
 
 class Level:
     def __init__(self, data):
-        """
+        """Adds tiles for the platforms of the game based on the level map
 
         :param data:
         """
@@ -113,22 +113,25 @@ class Level:
 
         row_count = 0
         for row in data:
+            # Assigns a blank tile for the level builder
             col_count = 0  # Colum counter
             for tile in row:
                 if tile == 1:
+                    # Assigns tile 1 in the level builder as the dirt png and rescales it
                     dirt = pygame.transform.scale(dirt, (50, 50))
                     dirt_rect = dirt.get_rect()
                     dirt_rect.x = col_count * 50  # X coordinate
                     dirt_rect.y = row_count * 50  # Y coordinate
                     tile = (dirt, dirt_rect)
-                    self.tile_list.append(tile)  # Saves the tile to tile list
+                    self.tile_list.append(tile) # Saves the tile to tile list
                 if tile == 2:
+                    # Assigns tile 2 in the level builder as the grass png and rescales it
                     grass = pygame.transform.scale(grass, (50, 50))
                     grass_rect = grass.get_rect()
                     grass_rect.x = col_count * 50  # X coordinate
                     grass_rect.y = row_count * 50  # Y coordinate
                     tile = (grass, grass_rect)
-                    self.tile_list.append(tile)
+                    self.tile_list.append(tile) # Saves the tile to tile list
                 col_count += 1
             row_count += 1
 
