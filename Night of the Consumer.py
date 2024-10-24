@@ -80,6 +80,11 @@ class Monster:
             self.vel_y = 10
         dy += self.vel_y
 
+        # # Use this to check for collision
+        # for tile in level.tile_list:
+        #     # Collision in x direction
+        #     if tile[1].cooliderect
+
         # Update player coordinates
         self.rect.x += dx
         self.rect.y += dy
