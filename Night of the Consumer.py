@@ -139,7 +139,7 @@ class Level:
         for tile in self.tile_list:
             display.blit(tile[0], tile[1])
 
-
+# Level map using tiles to build the platformer
 level_map = [
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
