@@ -12,11 +12,11 @@ pygame.display.set_caption("Night of the Consumer")
 background = pygame.image.load("background.PNG").convert_alpha()
 
 
-# Temporary grid
-def draw_grid():
-    for line in range(0, 16):
-        pygame.draw.line(display, (255, 255, 255), (0, line * 50), (800, line * 50))
-        pygame.draw.line(display, (255, 255, 255), (line * 50, 0), (line * 50, line * 800))
+# # Temporary grid
+# def draw_grid():
+#     for line in range(0, 16):
+#         pygame.draw.line(display, (255, 255, 255), (0, line * 50), (800, line * 50))
+#         pygame.draw.line(display, (255, 255, 255), (line * 50, 0), (line * 50, line * 800))
 
 
 # Player / Monster
@@ -181,8 +181,8 @@ while loop:
     level.draw()
     monster.update()
 
-    # Temporary grid
-    draw_grid()
+    # # Temporary grid
+    # draw_grid()
 
     pygame.display.flip()
     clock.tick(60)
