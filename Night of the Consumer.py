@@ -80,6 +80,7 @@ class Monster:
             self.vel_y = 10
         dy += self.vel_y
 
+        #started evil colission
         # # Use this to check for collision
         # for tile in level.tile_list:
         #     # Collision in x direction
