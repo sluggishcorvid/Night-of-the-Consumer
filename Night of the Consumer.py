@@ -7,16 +7,56 @@ pygame.init()
 resolution: tuple = (800, 800)
 display = pygame.display.set_mode(resolution)
 pygame.display.set_caption("Night of the Consumer")
+main_menu = True
+
+#temporary color til i can draw the title screen lolol
+white= (255,255,255)
 
 # Creates a background for the level
 background = pygame.image.load("background.PNG").convert_alpha()
 
+# Images for the title screen
+start = pygame.image.load("start.png").convert_alpha()
+exit = pygame.image.load("exit.png").convert_alpha()
+directions = pygame.image.load("directions.png").convert_alpha()
 
-# # Temporary grid
-# def draw_grid():
-#     for line in range(0, 16):
-#         pygame.draw.line(display, (255, 255, 255), (0, line * 50), (800, line * 50))
-#         pygame.draw.line(display, (255, 255, 255), (line * 50, 0), (line * 50, line * 800))
+# Defining the buttons
+start = pygame.transform.scale(start, (100, 100))
+exit = pygame.transform.scale(exit, (100, 100))
+directions = pygame.transform.scale(directions, (250, 100))
+
+# Sounds
+growl = pygame.mixer.Sound("monster growl.mp3")
+eating = pygame.mixer.Sound("eating.mp3") #add when the fruits are added to the game
+
+# Creates the title screen
+class Title:
+    def __init__(self, x, y, image):
+        self.image = image
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.clicked = False
+
+    def draw(self):
+        action = False
+
+        # get mouse position
+        pos = pygame.mouse.get_pos()
+
+        # check mouseover and clicked conditions
+        if self.rect.collidepoint(pos):
+            if pygame.mouse.get_pressed()[0] == 1 and self.clicked == False:
+                action = True
+                self.clicked = True
+
+        if pygame.mouse.get_pressed()[0] == 0:
+            self.clicked = False
+
+        # draw button
+        display.blit(self.image, self.rect)
+
+        return action
 
 
 # Player / Monster
@@ -61,6 +101,8 @@ class Monster:
             self.jumped = True
         if not (key[pygame.K_SPACE] or key[pygame.K_UP]):
             self.jumped = False
+        if key[pygame.K_SPACE] or key[pygame.K_UP]:
+            pygame.mixer.Sound.play(growl)
         if (key[pygame.K_LEFT] or key[pygame.K_a]) and self.rect.left > 0:
             self.direction = 0  # Updates the direction of the sprite
             dx -= 5
@@ -79,12 +121,6 @@ class Monster:
         if self.vel_y > 10:
             self.vel_y = 10
         dy += self.vel_y
-
-        #started evil colission
-        # # Use this to check for collision
-        # for tile in level.tile_list:
-        #     # Collision in x direction
-        #     if tile[1].cooliderect
 
         # Update player coordinates
         self.rect.x += dx
@@ -168,25 +204,35 @@ level_map = [
 level: Level = Level(level_map)
 monster: Monster = Monster(100, 800 - 130)
 clock = pygame.time.Clock()
+start_button = Title(800 / 2 - 350, 800 / 2, start)
+exit_button = Title(800 / 2 + 150, 800 / 2, exit)
 
 loop: bool = True
 score: int = 0
 
 while loop:
+
+    if main_menu:
+        if exit_button.draw():
+            run = False
+        if start_button.draw():
+            main_menu = False
+
+    key = pygame.key.get_pressed()
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             loop = False
+            pygame.quit()
+            sys.exit()
+        if key[pygame.K_ESCAPE]:
+            pygame.quit()
+            sys.exit()
 
+    # Draws background, level map, and monster
     display.blit(background, (0, 0))
-
     level.draw()
     monster.update()
 
-    # # Temporary grid
-    # draw_grid()
-
     pygame.display.flip()
     clock.tick(60)
-
-pygame.quit()
-sys.exit()
