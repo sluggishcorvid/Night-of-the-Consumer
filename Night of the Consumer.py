@@ -27,6 +27,10 @@ white= (255,255,255)
 # Creates a background for the level
 background = pygame.image.load("background.PNG").convert_alpha()
 
+# Monster
+monstermini = pygame.image.load('monster.PNG').convert_alpha()
+pygame.display.set_icon(monstermini)
+
 # Images for the title screen
 start_img = pygame.image.load("start.png").convert_alpha()
 exit_img = pygame.image.load("exit.png").convert_alpha()
@@ -233,6 +237,7 @@ while loop:
     display.blit(start_button, start_rect)
     display.blit(exit_button, exit_rect)
     display.blit(directions, directions_rect)
+
 
 
     pygame.display.flip()
