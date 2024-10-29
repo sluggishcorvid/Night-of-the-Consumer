@@ -4,9 +4,7 @@ import pygame, sys
 
 """
 TODO: :)
-    Add image in corner of display
-    Start button function
-    Exit button function
+    Title
     Directions button function
     Fruit spawning
     Fruit sound effects
@@ -21,13 +19,12 @@ resolution: tuple = (800, 800)
 display = pygame.display.set_mode(resolution)
 pygame.display.set_caption("Night of the Consumer")
 
-#temporary color til I can draw the title screen lolol
-white= (255,255,255)
-
 # Creates a background for the level
 background = pygame.image.load("background.PNG").convert_alpha()
 
-# Monster
+start_game= True
+
+# Display Icon
 monstermini = pygame.image.load('monster.PNG').convert_alpha()
 pygame.display.set_icon(monstermini)
 
@@ -49,22 +46,36 @@ growl = pygame.mixer.Sound("monster growl.mp3")
 eating = pygame.mixer.Sound("eating.mp3") #add when the fruits are added to the game
 
 # Creates the title screen
-def title_screen():
-    """Displays the title screen with interactive image buttons for Start and Exit."""
-    while True:
+class MainScreen:
+    def title_screen(self):
+        """Displays the title screen with interactive image buttons."""
+        while True:
+            display.blit(background, (0, 0))
+            display.blit(start_button, start_rect)
+            display.blit(exit_button, exit_rect)
+            display.blit(directions, directions_rect)
 
-        # Event handling
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if start_rect.collidepoint(event.pos):
-
-                    return  # Exits the title screen and starts the game
-                elif exit_rect.collidepoint(event.pos):
+            # Event handling
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if start_rect.collidepoint(event.pos):
+                        return  # Exit title screen to start the game
+                    elif exit_rect.collidepoint(event.pos):
+                        pygame.quit()
+                        sys.exit()
+                    elif directions_rect.collidepoint(event.pos):
+                        self.show_directions()  # Call function to display directions
+
+            pygame.display.flip()
+
+    def show_directions(self):
+        """Displays game directions or instructions."""
+        # Temporary function placeholder
+        print("Game Directions: Collect fruit, avoid obstacles, and try to survive!")
+        # You could add code here to display an overlay with game instructions
 
 # Player / Monster
 class Monster:
@@ -208,14 +219,23 @@ level_map = [
     [1, 1, 1, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1]
 ]
 
+# Main game loop setup
 level: Level = Level(level_map)
 monster: Monster = Monster(100, 800 - 130)
 clock = pygame.time.Clock()
+main_screen = MainScreen()
+main_screen.title_screen()
 
 loop: bool = True
 score: int = 0
 
 while loop:
+
+    # Draws buttons and background
+    display.blit(background, (0, 0))
+    level.draw()
+    monster.update()
+
 
     key = pygame.key.get_pressed()
 
@@ -224,20 +244,6 @@ while loop:
             loop = False
             pygame.quit()
             sys.exit()
-        if key[pygame.K_ESCAPE]:
-            pygame.quit()
-            sys.exit()
-
-    # Draws buttons and background
-    display.blit(background, (0, 0))
-    level.draw()
-    monster.update()
-
-    display.fill(white)  # Fill screen with a background color
-    display.blit(start_button, start_rect)
-    display.blit(exit_button, exit_rect)
-    display.blit(directions, directions_rect)
-
 
 
     pygame.display.flip()
