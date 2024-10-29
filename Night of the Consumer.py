@@ -2,29 +2,43 @@ import pygame, sys
 
 # from pygame.locals import *
 
+"""
+TODO: :)
+    Add image in corner of display
+    Start button function
+    Exit button function
+    Directions button function
+    Fruit spawning
+    Fruit sound effects
+    Collisions
+    Draw background
+    Score logging
+"""
+
 pygame.init()
 
 resolution: tuple = (800, 800)
 display = pygame.display.set_mode(resolution)
 pygame.display.set_caption("Night of the Consumer")
 
-#temporary color til i can draw the title screen lolol
+#temporary color til I can draw the title screen lolol
 white= (255,255,255)
 
 # Creates a background for the level
 background = pygame.image.load("background.PNG").convert_alpha()
 
 # Images for the title screen
-start = pygame.image.load("start.png").convert_alpha()
-exit = pygame.image.load("exit.png").convert_alpha()
+start_img = pygame.image.load("start.png").convert_alpha()
+exit_img = pygame.image.load("exit.png").convert_alpha()
 directions = pygame.image.load("directions.png").convert_alpha()
 
 # Defining the buttons
-start = pygame.transform.scale(start, (100, 100))
-exit = pygame.transform.scale(exit, (100, 100))
-directions = pygame.transform.scale(directions, (250, 100))
-start_rect = start.get_rect(center=(800 // 2, 800 // 2 - 50))
-exit_rect = exit.get_rect(center=(800 // 2, 800 // 2 + 50))
+start_button = pygame.transform.scale(start_img, (200, 200))
+exit_button = pygame.transform.scale(exit_img, (200, 200))
+directions = pygame.transform.scale(directions, (450, 200))
+start_rect = start_button.get_rect(center=(800 // 2 - 125, 800 // 2 - 100))
+exit_rect = exit_button.get_rect(center=(800 // 2 + 125, 800 // 2 - 100))
+directions_rect = directions.get_rect(center=(800 // 2, 800 // 2 + 100))
 
 # Sounds
 growl = pygame.mixer.Sound("monster growl.mp3")
@@ -42,7 +56,7 @@ def title_screen():
                 sys.exit()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if start_rect.collidepoint(event.pos):
-                    print("Start Game")  # Replace with actual game-starting code
+
                     return  # Exits the title screen and starts the game
                 elif exit_rect.collidepoint(event.pos):
                     pygame.quit()
@@ -214,9 +228,11 @@ while loop:
     display.blit(background, (0, 0))
     level.draw()
     monster.update()
+
     display.fill(white)  # Fill screen with a background color
-    display.blit(start, start_rect)
-    display.blit(exit, exit_rect)
+    display.blit(start_button, start_rect)
+    display.blit(exit_button, exit_rect)
+    display.blit(directions, directions_rect)
 
 
     pygame.display.flip()
