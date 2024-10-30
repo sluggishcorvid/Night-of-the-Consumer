@@ -4,12 +4,9 @@ import pygame, sys
 
 """
 TODO: :)
-    Title
-    Directions button function
     Fruit spawning
     Fruit sound effects
     Collisions
-    Draw background
     Score logging
 """
 
@@ -21,8 +18,6 @@ pygame.display.set_caption("Night of the Consumer")
 
 # Creates a background for the level
 background = pygame.image.load("background.PNG").convert_alpha()
-
-start_game= True
 
 # Display Icon
 monstermini = pygame.image.load('monster.PNG').convert_alpha()
@@ -37,23 +32,38 @@ directions = pygame.image.load("directions.png").convert_alpha()
 start_button = pygame.transform.scale(start_img, (200, 200))
 exit_button = pygame.transform.scale(exit_img, (200, 200))
 directions = pygame.transform.scale(directions, (450, 200))
-start_rect = start_button.get_rect(center=(800 // 2 - 125, 800 // 2 - 100))
-exit_rect = exit_button.get_rect(center=(800 // 2 + 125, 800 // 2 - 100))
-directions_rect = directions.get_rect(center=(800 // 2, 800 // 2 + 100))
+start_rect = start_button.get_rect(center=(800 / 2 - 125, 800 / 2 - 100))
+exit_rect = exit_button.get_rect(center=(800 / 2 + 125, 800 / 2 - 100))
+directions_rect = directions.get_rect(center=(800 / 2, 800 / 2 + 100))
 
 # Sounds
 growl = pygame.mixer.Sound("monster growl.mp3")
 eating = pygame.mixer.Sound("eating.mp3") #add when the fruits are added to the game
 
+# Initialize Fonts
+main_font = pygame.font.Font(None , 84)
+main_font_pos = (400, 100)
+direction_font = pygame.font.Font(None , 32)
+direction_font_pos = (400, 700)
+
+
 # Creates the title screen
 class MainScreen:
     def title_screen(self):
+        directionDisplay = False
         """Displays the title screen with interactive image buttons."""
         while True:
             display.blit(background, (0, 0))
             display.blit(start_button, start_rect)
             display.blit(exit_button, exit_rect)
             display.blit(directions, directions_rect)
+            title_text = main_font.render("Night of the Consumer", True, (255, 255, 191))
+            display.blit(title_text, title_text.get_rect(center=main_font_pos))
+
+            if directionDisplay:
+                directions_text = direction_font.render("A or < and D or > to move and SPACE or ^ to jump", True,(255, 255, 191))
+                display.blit(directions_text, directions_text.get_rect(center=direction_font_pos))
+
 
             # Event handling
             for event in pygame.event.get():
@@ -67,15 +77,15 @@ class MainScreen:
                         pygame.quit()
                         sys.exit()
                     elif directions_rect.collidepoint(event.pos):
+                        directionDisplay = True
                         self.show_directions()  # Call function to display directions
 
             pygame.display.flip()
 
     def show_directions(self):
         """Displays game directions or instructions."""
-        # Temporary function placeholder
-        print("Game Directions: Collect fruit, avoid obstacles, and try to survive!")
-        # You could add code here to display an overlay with game instructions
+        directions_text = direction_font.render("A or < and D or > to move and SPACE or ^ to jump", True, (255, 255, 191))
+        display.blit(directions_text, directions_text.get_rect(center=direction_font_pos))
 
 # Player / Monster
 class Monster:
