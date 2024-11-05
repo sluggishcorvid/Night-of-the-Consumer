@@ -3,10 +3,10 @@ import pygame, sys
 # from pygame.locals import *
 
 """
-TODO: :)
+TODO: :}
     Fruit spawning
     Fruit sound effects
-    Collisions
+    Fruit Collisions
     Score logging
 """
 
@@ -16,19 +16,17 @@ resolution: tuple = (800, 800)
 display = pygame.display.set_mode(resolution)
 pygame.display.set_caption("Night of the Consumer")
 
-# Creates a background for the level
+# Background and icons
 background = pygame.image.load("background.PNG").convert_alpha()
-
-# Display Icon
 monstermini = pygame.image.load('monster.PNG').convert_alpha()
 pygame.display.set_icon(monstermini)
 
-# Images for the title screen
+# Title screen images
 start_img = pygame.image.load("start.png").convert_alpha()
 exit_img = pygame.image.load("exit.png").convert_alpha()
 directions = pygame.image.load("directions.png").convert_alpha()
 
-# Defining the buttons
+# Buttons
 start_button = pygame.transform.scale(start_img, (200, 200))
 exit_button = pygame.transform.scale(exit_img, (200, 200))
 directions = pygame.transform.scale(directions, (450, 200))
@@ -38,14 +36,13 @@ directions_rect = directions.get_rect(center=(800 / 2, 800 / 2 + 100))
 
 # Sounds
 growl = pygame.mixer.Sound("monster growl.mp3")
-eating = pygame.mixer.Sound("eating.mp3") #add when the fruits are added to the game
+eating = pygame.mixer.Sound("eating.mp3")  # To be used with fruit spawning
 
 # Initialize Fonts
-main_font = pygame.font.Font(None , 84)
+main_font = pygame.font.Font("Melted Monster.ttf", 64)
 main_font_pos = (400, 100)
-direction_font = pygame.font.Font(None , 32)
+direction_font = pygame.font.Font("Melted Monster.ttf" , 32)
 direction_font_pos = (400, 700)
-
 
 # Creates the title screen
 class MainScreen:
@@ -61,7 +58,7 @@ class MainScreen:
             display.blit(title_text, title_text.get_rect(center=main_font_pos))
 
             if directionDisplay:
-                directions_text = direction_font.render("A or < and D or > to move and SPACE or ^ to jump", True,(255, 255, 191))
+                directions_text = direction_font.render("A  and D to move and SPACE to jump", True,(255, 255, 191))
                 display.blit(directions_text, directions_text.get_rect(center=direction_font_pos))
 
 
@@ -84,10 +81,9 @@ class MainScreen:
 
     def show_directions(self):
         """Displays game directions or instructions."""
-        directions_text = direction_font.render("A or < and D or > to move and SPACE or ^ to jump", True, (255, 255, 191))
+        directions_text = direction_font.render("A and D to move and SPACE to jump", True, (255, 255, 191))
         display.blit(directions_text, directions_text.get_rect(center=direction_font_pos))
 
-# Player / Monster
 class Monster:
     def __init__(self, x, y):
         """Initializes a new monster with initial position data
@@ -112,7 +108,7 @@ class Monster:
         self.vel_y = 0
         self.jumped = False
 
-    def update(self):
+    def update(self, tiles):
         """Updates the player position based on user input
         """
 
@@ -124,7 +120,7 @@ class Monster:
         key = pygame.key.get_pressed()
 
         # Moves the character based on user input
-        if (key[pygame.K_SPACE] or key[pygame.K_UP]) and self.jumped == False:
+        if (key[pygame.K_SPACE] or key[pygame.K_UP]) and not self.jumped:
             self.vel_y = -15
             self.jumped = True
         if not (key[pygame.K_SPACE] or key[pygame.K_UP]):
@@ -132,42 +128,49 @@ class Monster:
         if key[pygame.K_SPACE] or key[pygame.K_UP]:
             pygame.mixer.Sound.play(growl)
         if (key[pygame.K_LEFT] or key[pygame.K_a]) and self.rect.left > 0:
-            self.direction = 0  # Updates the direction of the sprite
+            self.direction = 0 # Updates the direction of the sprite
             dx -= 5
-        if (key[pygame.K_RIGHT] or key[pygame.K_d])and self.rect.right < 800:
-            self.direction = 1  # Updates the direction of the sprite
+        if (key[pygame.K_RIGHT] or key[pygame.K_d]) and self.rect.right < 800:
+            self.direction = 1 # Updates the direction of the sprite
             dx += 5
 
         # Flips the sprite if the player changes the direction they're facing
         if not self.direction == self.last_direction:
             self.image = pygame.transform.flip(self.image, flip_x=True, flip_y=False)
-            self.last_direction = self.direction  # Updates the last direction
+            self.last_direction = self.direction # Updates the last direction
 
         # Adds to the y velocity value for gravity
         self.vel_y += 1
-
         if self.vel_y > 10:
             self.vel_y = 10
         dy += self.vel_y
 
-        # Update player coordinates
+        # Update position with collision
+        dx, dy = self.check_collisions(dx, dy, tiles)
+
         self.rect.x += dx
         self.rect.y += dy
-
         if self.rect.bottom > 800:
             self.rect.bottom = 800
             dy = 0
 
-        # Draw player onto screen
         display.blit(self.image, self.rect)
 
-    def get_coordinates(self) -> tuple:
-        """Gets the current player position
+    def check_collisions(self, dx, dy, tiles):
+        for tile in tiles:
+            # Horizontal collision
+            if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.rect.width, self.rect.height):
+                dx = 0  # Stop horizontal movement on collision
 
-        :return: Tuple representation of the position as (x, y)
-        """
-        return self.rect.x, self.rect.y
-
+            # Vertical collision
+            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.rect.width, self.rect.height):
+                if self.vel_y > 0:  # Falling
+                    dy = tile[1].top - self.rect.bottom
+                    self.vel_y = 0
+                elif self.vel_y < 0:  # Jumping
+                    dy = tile[1].bottom - self.rect.top
+                    self.vel_y = 0
+        return dx, dy
 
 class Level:
     def __init__(self, data):
@@ -184,7 +187,7 @@ class Level:
         row_count = 0 # Initializes row counter
         for row in data:
             # Assigns a blank tile for the level builder
-            col_count = 0 # Initializes column counter
+            col_count = 0  # Initializes column counter
             for tile in row:
                 if tile == 1:
                     # Assigns tile 1 in the level builder as the dirt png and rescales it
@@ -193,16 +196,15 @@ class Level:
                     dirt_rect.x = col_count * 50  # X coordinate
                     dirt_rect.y = row_count * 50  # Y coordinate
                     tile = (dirt, dirt_rect)
-                    self.tile_list.append(tile) # Saves the tile to tile list
+                    self.tile_list.append(tile)  # Saves the tile to tile list
                 if tile == 2:
                     # Assigns tile 2 in the level builder as the grass png and rescales it
                     grass = pygame.transform.scale(grass, (50, 50))
                     grass_rect = grass.get_rect()
-                    grass_rect.x = col_count * 50  # X coordinate
-                    grass_rect.y = row_count * 50  # Y coordinate
-                    tile = (grass, grass_rect)
-                    self.tile_list.append(tile) # Saves the tile to tile list
-                col_count += 1 # Increments the column value
+                    grass_rect.x = col_count * 50 # X coordinate
+                    grass_rect.y = row_count * 50 # Y coordinate
+                    self.tile_list.append((grass, grass_rect)) # Saves the tile to tile list
+                col_count += 1  # Increments the column value
             row_count += 1 # Increments the row value
 
     def draw(self):
@@ -230,8 +232,8 @@ level_map = [
 ]
 
 # Main game loop setup
-level: Level = Level(level_map)
-monster: Monster = Monster(100, 800 - 130)
+level = Level(level_map)
+monster = Monster(100, 800 - 130)
 clock = pygame.time.Clock()
 main_screen = MainScreen()
 main_screen.title_screen()
@@ -244,17 +246,13 @@ while loop:
     # Draws buttons and background
     display.blit(background, (0, 0))
     level.draw()
-    monster.update()
-
-
-    key = pygame.key.get_pressed()
+    monster.update(level.tile_list)
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             loop = False
             pygame.quit()
             sys.exit()
-
 
     pygame.display.flip()
     clock.tick(60)
