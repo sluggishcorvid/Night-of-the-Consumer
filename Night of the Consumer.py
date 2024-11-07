@@ -8,8 +8,10 @@ TODO: :}
     Fruit sound effects
     Fruit Collisions
     Score logging
+    background music
+    separate methods into new files
+    youtube video
 """
-
 pygame.init()
 
 resolution: tuple = (800, 800)
