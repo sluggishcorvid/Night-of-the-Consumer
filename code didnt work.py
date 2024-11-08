@@ -192,10 +192,18 @@ def spawn_fruits(platforms):
     for _ in range(15):  # Spawn a number of fruits (adjustable)
         platform = random.choice(platforms)
         fruit_image = random.choice(fruit_images)
-        x = platform[1].x + random.randint(0, platform[1].width - 30)
-        y = platform[1].y - 30  # Place fruit slightly above the platform
+        rect = platform[1]
+        point = (platform[1].x, platform[1].y)
+        if rect.collidepoint(point):
+            platform = random.choice(platforms)
+            rect = platform[1]
+            point = (platform[1].x, platform[1].y)
+        x = platform[1].x
+        # x = platform[1].x + random.randint(0, platform[1].width - 50)
+        y = platform[1].y - 50  # Place fruit slightly above the platform
         fruits.append(Fruit(fruit_image, x, y))
     return fruits
+
 
 # Detect collision between monster and fruits
 def check_fruit_collision(monster, fruits):
