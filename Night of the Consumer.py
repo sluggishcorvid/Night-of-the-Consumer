@@ -6,6 +6,7 @@ import pygame, sys, random
 TODO: :}
     separate methods into new files
     youtube video
+    restart button and functions w/ it
 """
 
 pygame.init()
@@ -23,14 +24,17 @@ pygame.display.set_icon(monstermini)
 start_img = pygame.image.load("start.png").convert_alpha()
 exit_img = pygame.image.load("exit.png").convert_alpha()
 directions = pygame.image.load("directions.png").convert_alpha()
+restart_img = pygame.image.load("restart.png").convert_alpha()
 
 # Buttons
 start_button = pygame.transform.scale(start_img, (200, 200))
 exit_button = pygame.transform.scale(exit_img, (200, 200))
 directions = pygame.transform.scale(directions, (450, 200))
+restart_button = pygame.transform.scale(restart_img, (450, 200))
 start_rect = start_button.get_rect(center=(800 / 2 - 125, 800 / 2 - 100))
 exit_rect = exit_button.get_rect(center=(800 / 2 + 125, 800 / 2 - 100))
 directions_rect = directions.get_rect(center=(800 / 2, 800 / 2 + 100))
+restart_rect = restart_button.get_rect(center=(800 / 2, 800 / 2 + 100))
 
 # Sounds
 bg_music = pygame.mixer.Sound("background.mp3")
@@ -201,11 +205,20 @@ class Fruit:
 
 
 # Detect collision between monster and fruits
-def check_fruit_collision(self):
+def check_fruit_collision():
     for fruit in fruits[:]:
         if monster.rect.colliderect(fruit.rect):
             pygame.mixer.Sound.play(eating)  # Play eating sound
             fruits.remove(fruit)  # Remove the fruit after eating
+
+def restart_game():
+    """Restarts the game by resetting game state and reloading necessary elements."""
+    global monster, fruits, level
+
+    # Re-initialize the game components
+    monster = Monster(100, 600)  # Re-position the monster to its starting location
+    level = Level(level_map)  # Re-load the level
+    fruits = spawn_fruits(level)  # Spawn fruits again
 
     # Function to display a "Game Win" message
 def display_win_screen():
@@ -213,8 +226,8 @@ def display_win_screen():
     message_text = font.render("All fruit eaten! You win!", True, (255, 255, 191))
     message_rect = message_text.get_rect(center=(400, 400))
     display.blit(message_text, message_rect)
+    display.blit(restart_button, restart_rect)
     pygame.display.flip()
-    pygame.time.wait(3000)  # Display message for 3 second
 
 
 class Level:
@@ -303,6 +316,7 @@ fruits = spawn_fruits(level)
 
 loop: bool = True
 score: int = 0
+game_over = False
 
 
 while loop:
@@ -311,20 +325,34 @@ while loop:
     display.blit(background, (0, 0))
     level.draw()
     monster.update(level.tile_list)
-    for fruit in fruits:
-        fruit.draw()
-    check_fruit_collision(monster)
-
-    if not fruits:  # If the list of fruits is empty
-        display_win_screen()
-        loop = False  # Exit the loop after showing the win screen
-
+    # Event handling
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             loop = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if game_over and restart_rect.collidepoint(event.pos):
+                restart_game()
+                game_over = False  # Reset the game over flag
 
-            pygame.quit()
-            sys.exit()
+    # Update and draw the game only if it's not over
+    if not game_over:
+        monster.update(level.tile_list)
+        level.draw()
+
+        # Draw fruits and check for collisions
+        for fruit in fruits:
+            fruit.draw()
+        check_fruit_collision()
+
+        # Check if all fruits are eaten
+        if not fruits:
+            game_over = True  # Set game over to True when the player wins
+    else:
+        # Display the win screen and restart button
+        display_win_screen()
 
     pygame.display.flip()
     clock.tick(60)
+
+pygame.quit()
+sys.exit()
