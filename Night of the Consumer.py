@@ -68,7 +68,7 @@ class MainScreen:
 
             if directionDisplay:
                 directions_text = direction_font.render(
-                    "Use A and D to move and SPACE to jump.",
+                    "Use the arrow keys or WASD to move and jump.",
                     True,
                     (255, 255, 191))
                 display.blit(directions_text, directions_text.get_rect(center=direction_font_pos))
@@ -98,7 +98,7 @@ class MainScreen:
     def show_directions(self):
         """Displays game directions or instructions."""
         directions_text = direction_font.render(
-            "Use A and D to move and SPACE to jump.",
+            "Use the arrow keys or WASD to move and jump.",
             True,
             (255, 255, 191))
         display.blit(directions_text, directions_text.get_rect(center=direction_font_pos))
@@ -144,10 +144,10 @@ class Monster:
         key = pygame.key.get_pressed()
 
         # Moves the character based on user input
-        if (key[pygame.K_SPACE] or key[pygame.K_UP]) and not self.jumped:
+        if (key[pygame.K_w] or key[pygame.K_UP]) and not self.jumped:
             self.vel_y = -15
             self.jumped = True
-        if not (key[pygame.K_SPACE] or key[pygame.K_UP]):
+        if not (key[pygame.K_w] or key[pygame.K_UP]):
             self.jumped = False
         if (key[pygame.K_LEFT] or key[pygame.K_a]) and self.rect.left > 0:
             self.direction = 0 # Updates the direction of the sprite
