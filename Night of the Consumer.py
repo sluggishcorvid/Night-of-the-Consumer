@@ -1,17 +1,13 @@
-import pygame, sys
+import pygame, sys, random
 
 # from pygame.locals import *
 
 """
 TODO: :}
-    Fruit spawning
-    Fruit sound effects
-    Fruit Collisions
-    Score logging
-    background music
     separate methods into new files
     youtube video
 """
+
 pygame.init()
 
 resolution: tuple = (800, 800)
@@ -37,14 +33,19 @@ exit_rect = exit_button.get_rect(center=(800 / 2 + 125, 800 / 2 - 100))
 directions_rect = directions.get_rect(center=(800 / 2, 800 / 2 + 100))
 
 # Sounds
-growl = pygame.mixer.Sound("monster growl.mp3")
-eating = pygame.mixer.Sound("eating.mp3")  # To be used with fruit spawning
+bg_music = pygame.mixer.Sound("background.mp3")
+eating = pygame.mixer.Sound("eating.mp3")
+pygame.mixer.music.load("background.mp3")
+pygame.mixer.music.set_volume(0.5)
+pygame.mixer.music.play()
 
 # Initialize Fonts
 main_font = pygame.font.Font("Melted Monster.ttf", 64)
 main_font_pos = (400, 100)
 direction_font = pygame.font.Font("Melted Monster.ttf" , 32)
-direction_font_pos = (400, 700)
+direction_font_pos = (400, 650)
+direction_font2 = pygame.font.Font("Melted Monster.ttf" , 32)
+direction_font_pos2 = (400, 750)
 
 # Creates the title screen
 class MainScreen:
@@ -56,15 +57,24 @@ class MainScreen:
             display.blit(start_button, start_rect)
             display.blit(exit_button, exit_rect)
             display.blit(directions, directions_rect)
-            title_text = main_font.render("Night of the Consumer", True, (255, 255, 191))
+            title_text = main_font.render("Night of the Consumer",
+                                          True,
+                                          (255, 255, 191))
             display.blit(title_text, title_text.get_rect(center=main_font_pos))
 
             if directionDisplay:
-                directions_text = direction_font.render("A  and D to move and SPACE to jump", True,(255, 255, 191))
+                directions_text = direction_font.render(
+                    "Use A and D to move and SPACE to jump.",
+                    True,
+                    (255, 255, 191))
                 display.blit(directions_text, directions_text.get_rect(center=direction_font_pos))
+                directions_text2 = direction_font.render(
+                    "Help monster consume all the fruits to win!",
+                    True,
+                    (255, 255, 191))
+                display.blit(directions_text2, directions_text2.get_rect(center=direction_font_pos2))
 
-
-            # Event handling
+        # Event handling
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
@@ -83,8 +93,16 @@ class MainScreen:
 
     def show_directions(self):
         """Displays game directions or instructions."""
-        directions_text = direction_font.render("A and D to move and SPACE to jump", True, (255, 255, 191))
+        directions_text = direction_font.render(
+            "Use A and D to move and SPACE to jump.",
+            True,
+            (255, 255, 191))
         display.blit(directions_text, directions_text.get_rect(center=direction_font_pos))
+        directions_text2 = direction_font.render(
+            "Help monster consume all the fruits to win!",
+            True,
+            (255, 255, 191))
+        display.blit(directions_text2, directions_text2.get_rect(center=direction_font_pos2))
 
 class Monster:
     def __init__(self, x, y):
@@ -127,8 +145,6 @@ class Monster:
             self.jumped = True
         if not (key[pygame.K_SPACE] or key[pygame.K_UP]):
             self.jumped = False
-        if key[pygame.K_SPACE] or key[pygame.K_UP]:
-            pygame.mixer.Sound.play(growl)
         if (key[pygame.K_LEFT] or key[pygame.K_a]) and self.rect.left > 0:
             self.direction = 0 # Updates the direction of the sprite
             dx -= 5
@@ -173,6 +189,62 @@ class Monster:
                     dy = tile[1].bottom - self.rect.top
                     self.vel_y = 0
         return dx, dy
+
+class Fruit:
+    def __init__(self, image_path, x, y):
+        self.image = pygame.image.load(image_path).convert_alpha()
+        self.image = pygame.transform.scale(self.image, (50, 50))
+        self.rect = self.image.get_rect(topleft=(x, y))
+
+    def draw(self):
+        display.blit(self.image, self.rect)
+
+def spawn_fruits(platforms):
+    fruits = []
+    fruit_images = ['apple.png', 'pineapple.png']
+
+    def valid_spawn(x, y, existing_fruits):
+        """Checks if the given (x, y) position is valid (not overlapping other fruits)."""
+        for fruit in existing_fruits:
+            if fruit.rect.collidepoint(x, y) or fruit.rect.colliderect(pygame.Rect(x, y, 50, 50)):
+                return False
+        return True
+
+    for i in range(1):  # Adjust the number of fruits as needed
+        while True:
+            platform = random.choice(platforms)
+            rect = platform[1]
+
+            # Check if it's a dirt block (skip spawning fruits here)
+            if i == 1 in level.tile_list:
+                continue
+
+            x = random.randint(rect.x, rect.x + rect.width - 50)
+            y = rect.y - 50  # Place fruit slightly above the platform
+
+            # Check if the position is valid and not overlapping existing fruits
+            if valid_spawn(x, y, fruits):
+                fruit_image = random.choice(fruit_images)
+                fruits.append(Fruit(fruit_image, x, y))
+                break  # Move on to the next fruit
+
+    return fruits
+
+
+# Detect collision between monster and fruits
+def check_fruit_collision(monster, fruits):
+    for fruit in fruits[:]:
+        if monster.rect.colliderect(fruit.rect):
+            pygame.mixer.Sound.play(eating)  # Play eating sound
+            fruits.remove(fruit)  # Remove the fruit after eating
+
+def display_win_screen():
+    win_font = pygame.font.Font("Melted Monster.ttf", 80)
+    win_text = win_font.render("You Win!", True, (255, 255, 191))
+    win_rect = win_text.get_rect(center=(400, 400))
+    display.blit(win_text, win_rect)
+    pygame.time.wait(3000)  # Display for 3 seconds
+
 
 class Level:
     def __init__(self, data):
@@ -242,6 +314,7 @@ main_screen.title_screen()
 
 loop: bool = True
 score: int = 0
+fruits = spawn_fruits(level.tile_list)
 
 while loop:
 
@@ -249,10 +322,18 @@ while loop:
     display.blit(background, (0, 0))
     level.draw()
     monster.update(level.tile_list)
+    for fruit in fruits:
+        fruit.draw()
+    check_fruit_collision(monster, fruits)
+
+    if not fruits:  # If the list of fruits is empty
+        display_win_screen()
+        loop = False  # Exit the loop after showing the win screen
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             loop = False
+
             pygame.quit()
             sys.exit()
 
