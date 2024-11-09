@@ -201,21 +201,21 @@ class Fruit:
 
 
 # Detect collision between monster and fruits
-def check_fruit_collision(monster, fruits, display_message, self):
+def check_fruit_collision(self):
     for fruit in fruits[:]:
         if monster.rect.colliderect(fruit.rect):
             pygame.mixer.Sound.play(eating)  # Play eating sound
             fruits.remove(fruit)  # Remove the fruit after eating
-            display_message(self)  # Call the function to display the message
 
-    # Function to display a "Fruit eaten!" message
-def display_message(self):
-    font = pygame.font.Font("Melted Monster.ttf", 32)
-    message_text = font.render("Fruit eaten!", True, (255, 255, 191))
-    message_rect = message_text.get_rect(center=(400, 50))
+    # Function to display a "Game Win" message
+def display_win_screen():
+    font = pygame.font.Font("Melted Monster.ttf", 50)
+    message_text = font.render("All fruit eaten! You win!", True, (255, 255, 191))
+    message_rect = message_text.get_rect(center=(400, 400))
     display.blit(message_text, message_rect)
     pygame.display.flip()
-    pygame.time.wait(1000)  # Display message for 1 second
+    pygame.time.wait(3000)  # Display message for 3 second
+
 
 class Level:
     def __init__(self, data):
@@ -313,8 +313,11 @@ while loop:
     monster.update(level.tile_list)
     for fruit in fruits:
         fruit.draw()
-    check_fruit_collision(monster, fruits, display_message)
+    check_fruit_collision(monster)
 
+    if not fruits:  # If the list of fruits is empty
+        display_win_screen()
+        loop = False  # Exit the loop after showing the win screen
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
