@@ -1,87 +1,82 @@
 import pygame
 
 class Monster:
-    def __init__(self, x, y, ):
-        """Initializes a new monster with initial position data
-        :param x: Initial X position
-        :param y: Initial Y position
-        """
+    IMAGE_PATH = 'monster.PNG'
+    IMAGE_SIZE = (80, 80)
+    GRAVITY = 1
+    MAX_FALL_SPEED = 10
+    JUMP_STRENGTH = -15
+    MOVE_SPEED = 5
+    FLOOR_LIMIT = 800
 
-        # Defines a monster with the sprite png and scales it
-        Monster.png = pygame.image.load('monster.PNG')
-        self.image = pygame.transform.scale(Monster.png, (80, 80))
+    # Load and scale image once
+    _base_image = pygame.transform.scale(pygame.image.load(IMAGE_PATH), IMAGE_SIZE)
 
-        # Defines the position of the monster
-        self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
-
-        # Defines initial direction data
-        self.direction: int = 1
-        self.last_direction: int = 1
-
-        # Defines initial y velocity and jump value
+    def __init__(self, x, y):
+        """Initializes a new monster with initial position data"""
+        self.image = Monster._base_image.copy()
+        self.rect = self.image.get_rect(topleft=(x, y))
+        self.direction = 1
+        self.last_direction = 1
         self.vel_y = 0
         self.jumped = False
 
     def update(self, display, tiles):
-        """Updates the player position based on user input
-        """
-
-        # Change in x and y position
-        dx = 0
-        dy = 0
-
-        # Gets user input from the keyboard
+        dx, dy = 0, 0
         key = pygame.key.get_pressed()
 
-        # Moves the character based on user input
-        if (key[pygame.K_w] or key[pygame.K_UP]) and not self.jumped:
-            self.vel_y = -15
-            self.jumped = True
-        if not (key[pygame.K_w] or key[pygame.K_UP]):
+        # Jumping
+        if (key[pygame.K_w] or key[pygame.K_UP]):
+            if not self.jumped:
+                self.vel_y = Monster.JUMP_STRENGTH
+                self.jumped = True
+        else:
             self.jumped = False
-        if (key[pygame.K_LEFT] or key[pygame.K_a]) and self.rect.left > 0:
-            self.direction = 0 # Updates the direction of the sprite
-            dx -= 5
-        if (key[pygame.K_RIGHT] or key[pygame.K_d]) and self.rect.right < 800:
-            self.direction = 1 # Updates the direction of the sprite
-            dx += 5
 
-        # Flips the sprite if the player changes the direction they're facing
-        if not self.direction == self.last_direction:
-            self.image = pygame.transform.flip(self.image, flip_x=True, flip_y=False)
-            self.last_direction = self.direction # Updates the last direction
+        # Horizontal movement
+        if key[pygame.K_LEFT] or key[pygame.K_a]:
+            if self.rect.left > 0:
+                self.direction = 0
+                dx -= Monster.MOVE_SPEED
+        if key[pygame.K_RIGHT] or key[pygame.K_d]:
+            if self.rect.right < 800:
+                self.direction = 1
+                dx += Monster.MOVE_SPEED
 
-        # Adds to the y velocity value for gravity
-        self.vel_y += 1
-        if self.vel_y > 10:
-            self.vel_y = 10
+        # Flip sprite if direction changed
+        if self.direction != self.last_direction:
+            self.image = pygame.transform.flip(self.image, True, False)
+            self.last_direction = self.direction
+
+        # Apply gravity
+        self.vel_y = min(self.vel_y + Monster.GRAVITY, Monster.MAX_FALL_SPEED)
         dy += self.vel_y
 
-        # Update position with collision
+        # Collision detection
         dx, dy = self.check_collisions(dx, dy, tiles)
 
+        # Update position
         self.rect.x += dx
         self.rect.y += dy
-        if self.rect.bottom > 800:
-            self.rect.bottom = 800
-            dy = 0
+
+        # Floor boundary
+        if self.rect.bottom > Monster.FLOOR_LIMIT:
+            self.rect.bottom = Monster.FLOOR_LIMIT
+            self.vel_y = 0
 
         display.blit(self.image, self.rect)
 
     def check_collisions(self, dx, dy, tiles):
-        for tile in tiles:
-            # Horizontal collision
-            if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.rect.width, self.rect.height):
-                dx = 0  # Stop horizontal movement on collision
+        future_rect_x = self.rect.move(dx, 0)
+        future_rect_y = self.rect.move(0, dy)
 
-            # Vertical collision
-            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.rect.width, self.rect.height):
+        for _, tile_rect in tiles:
+            if tile_rect.colliderect(future_rect_x):
+                dx = 0
+            if tile_rect.colliderect(future_rect_y):
                 if self.vel_y > 0:  # Falling
-                    dy = tile[1].top - self.rect.bottom
-                    self.vel_y = 0
+                    dy = tile_rect.top - self.rect.bottom
                 elif self.vel_y < 0:  # Jumping
-                    dy = tile[1].bottom - self.rect.top
-                    self.vel_y = 0
+                    dy = tile_rect.bottom - self.rect.top
+                self.vel_y = 0
         return dx, dy
